@@ -1,0 +1,56 @@
+services:
+  # 核心 API 服务
+  api:
+    build: .
+    container_name: procurator_api
+    restart: unless-stopped
+    ports:
+      # 动态映射：宿主机端口:容器端口
+      # 读取 .env 中的 SERVER_PORT，如果未定义则默认为 50002
+      - "${SERVER_PORT:-50002}:${SERVER_PORT:-50002}"
+    volumes:
+      - ./logs:/app/logs
+      - ./data:/app/data
+      - ./app/scripts:/app/app/scripts
+    environment:
+      - SERVER_HOST=0.0.0.0
+      - SERVER_PORT=${SERVER_PORT:-50002}
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - redis
+    networks:
+      - procurator_net
+
+  # 任务队列消费者 (Worker)
+  worker:
+    build: .
+    container_name: procurator_worker
+    restart: unless-stopped
+    command: python -m app.worker api script
+    volumes:
+      - ./logs:/app/logs
+      - ./data:/app/data
+      - ./app/scripts:/app/app/scripts
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - redis
+    networks:
+      - procurator_net
+
+  # Redis 服务
+  redis:
+    image: redis:7-alpine
+    container_name: procurator_redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    networks:
+      - procurator_net
+
+volumes:
+  redis_data:
+
+networks:
+  procurator_net:
+    driver: bridge
