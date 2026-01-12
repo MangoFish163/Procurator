@@ -1,0 +1,39 @@
+version: "3"
+
+services:
+  loki:
+    image: grafana/loki:2.9.2
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - ./loki-config.yaml:/etc/loki/local-config.yaml
+    networks:
+      - monitoring
+
+  promtail:
+    image: grafana/promtail:2.9.2
+    volumes:
+      - ./promtail-config.yaml:/etc/promtail/config.yaml
+      # Mount the project logs directory so Promtail can read them
+      # Assuming this docker-compose is in deploy/monitoring/
+      - ../../logs:/var/log/procurator
+    command: -config.file=/etc/promtail/config.yaml
+    networks:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - ./grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasource.yaml
+    networks:
+      - monitoring
+
+networks:
+  monitoring:
+    driver: bridge

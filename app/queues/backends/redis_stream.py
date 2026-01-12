@@ -219,11 +219,15 @@ class RedisStreamBackend:
                 stream_key = f"procurator:queue:{queue_name}"
                 dlq_key = f"{stream_key}:dlq"
                 
+                payload_str = task_info.get("payload", "{}")
+                if isinstance(payload_str, dict):
+                    payload_str = json.dumps(payload_str)
+                
                 dead_msg = {
                     "tid": tid,
                     "error": str(error),
-                    "died_at": time.time(),
-                    "original_payload": task_info.get("payload", "{}")
+                    "died_at": str(time.time()),
+                    "original_payload": payload_str
                 }
                 if "task" in task_info:
                     dead_msg["task"] = task_info["task"]

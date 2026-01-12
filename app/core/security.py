@@ -65,33 +65,66 @@ def _get_token_map() -> Dict[str, str]:
     return {}
 
 
+from app.services.auth_service import get_user_by_key
+import asyncio
+
+async def verify_token_async(header_val: str | None) -> Optional[str]:
+    """
+    异步验证 Token，返回 role 或 None
+    优先查 DB，失败则回退到环境变量配置
+    """
+    if not header_val:
+        return None
+        
+    # 1. 尝试从 DB 验证 (RBAC)
+    # 注意：这会增加数据库压力，建议配合 Redis 缓存 (TODO)
+    try:
+        user = await get_user_by_key(header_val)
+        if user:
+            return user.role
+    except Exception:
+        pass
+
+    # 2. 回退到环境变量配置 (Legacy)
+    token_map = _get_token_map()
+    if header_val in token_map:
+        return token_map[header_val]
+        
+    return None
+
+async def require_auth(request: Request, x_api_token: Optional[str] = Header(None, alias="X-API-Token")):
+    """
+    FastAPI 依赖注入函数：验证 X-API-Token (支持异步)
+    """
+    role = await verify_token_async(x_api_token)
+    if not role:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    
+    # 将用户角色注入 request state，方便后续使用
+    request.state.user_role = role
+    return x_api_token
+
+async def token_dependency(request: Request, x_api_token: Optional[str] = Header(None, alias="X-API-Token")):
+    role = await verify_token_async(x_api_token)
+    if not role:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+        
+    ip = request.headers.get("X-Forwarded-For") or request.client.host
+    return {"ip": ip, "token": x_api_token, "role": role}
+
+# 保持同步接口兼容性 (仅用于某些特殊同步场景，不推荐)
 def verify_token(header_val: str | None) -> bool:
+    # 警告：此方法无法查询数据库，只能验证环境变量中的 Token
     if not header_val:
         return False
     token_map = _get_token_map()
-    # 如果没有配置任何 Token，则默认为开放（保持原有逻辑兼容性）
     if not token_map:
-        return True
+        return True # 如果没有配置任何 Token，默认开放
     return header_val in token_map
 
-
 def resolve_role(token: str | None) -> str:
+    # 警告：此方法无法查询数据库
     if not token:
         return "public"
     token_map = _get_token_map()
     return token_map.get(token, "public")
-
-def require_auth(x_api_token: Optional[str] = Header(None, alias="X-API-Token")):
-    """
-    FastAPI 依赖注入函数：验证 X-API-Token
-    """
-    if not verify_token(x_api_token):
-        raise HTTPException(status_code=401, detail="Unauthorized")
-    return x_api_token
-
-def token_dependency(request: Request, x_api_token: Optional[str] = Header(None, alias="X-API-Token")):
-    if not verify_token(x_api_token):
-        raise HTTPException(status_code=401, detail="Unauthorized")
-    ip = request.headers.get("X-Forwarded-For") or request.client.host
-    role = resolve_role(x_api_token)
-    return {"ip": ip, "token": x_api_token, "role": role}

@@ -6,6 +6,7 @@ from app.core.log_utils import get_logger
 from app.queues.task_queue import queue_manager
 from app.queues.tasks import handle_task
 from app.infra.webhook import notify
+from app.services.task_persistence import persist_task_start, persist_task_finish
 
 
 class Worker:

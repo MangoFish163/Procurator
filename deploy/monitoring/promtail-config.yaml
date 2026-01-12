@@ -1,0 +1,27 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  - job_name: procurator_logs
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: procurator
+          __path__: /var/log/procurator/*.log
+    pipeline_stages:
+      - match:
+          selector: '{job="procurator"}'
+          stages:
+          - regex:
+              expression: "^(?P<time>\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2},\\d{3}) (?P<level>\\w+) (?P<component>\\w+): (?P<message>.*)$"
+          - timestamp:
+              source: time
+              format: "2006-01-02 15:04:05,000"

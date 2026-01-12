@@ -57,6 +57,34 @@ def _reload_excludes():
     return excludes
 
 
+def check_redis_connection():
+    """
+    检查 Redis 连接是否可用 (仅在非容器环境下检查，或根据配置检查)
+    """
+    # 只有当配置为使用 redis 后端时才强检查
+    if os.getenv("QUEUE_BACKEND", "memory").lower() != "redis":
+        return
+
+    # 尝试导入 redis 模块
+    try:
+        import redis
+    except ImportError:
+        print("⚠️  [DevTools] QUEUE_BACKEND=redis 但未安装 redis 库。")
+        return
+
+    redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+    print(f"🔄 [DevTools] 正在检查 Redis 连接: {redis_url} ...")
+    
+    try:
+        r = redis.from_url(redis_url, socket_connect_timeout=2)
+        r.ping()
+        print("✅ [DevTools] Redis 连接成功")
+    except Exception as e:
+        print(f"❌ [DevTools] Redis 连接失败: {e}")
+        print("⚠️  请确保 Redis 服务已启动，或者在 .env 中设置 QUEUE_BACKEND=memory")
+        # 这里不强制退出，允许开发者看到错误后决定是否继续（虽然大概率会崩）
+        # sys.exit(1)
+
 def main():
     host = os.getenv("SERVER_HOST", "127.0.0.1")
     # 优先读取环境变量，默认回退到 50002
@@ -71,6 +99,9 @@ def main():
 
     # 启动前释放端口 (仅限开发环境)
     free_port(port)
+    
+    # 检查 Redis 连接
+    check_redis_connection()
     
     # 开发环境默认开启 reload，方便调试
     # 生产环境通常设置 SERVER_RELOAD=0
