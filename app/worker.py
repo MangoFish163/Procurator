@@ -1,5 +1,7 @@
 import asyncio
 import time
+import socket
+import uuid
 from typing import Optional, List
 
 from app.core.log_utils import get_logger
@@ -14,6 +16,8 @@ class Worker:
         self.logger = get_logger("worker")
         self._tasks: List[asyncio.Task] = []
         self._running = False
+        # 生成唯一的 worker_id: hostname-uuid (截断以适应数据库字段)
+        self.worker_id = f"{socket.gethostname()[:80]}-{uuid.uuid4().hex[:8]}"
 
     def start(self, queues: List[str]):
         if self._running:
