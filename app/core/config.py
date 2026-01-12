@@ -72,7 +72,7 @@ class Config:
         return val if val is not None else default
 
     def get_json(self, *keys, default=None):
-        """支持多级 Key 获取，例如 get_json('projects', 'tables', '包裹信息汇总表')"""
+        """支持多级 Key 获取，例如 get_json('section', 'subsection', 'key')"""
         obj = self._json
         for k in keys:
             if isinstance(obj, dict) and k in obj:
