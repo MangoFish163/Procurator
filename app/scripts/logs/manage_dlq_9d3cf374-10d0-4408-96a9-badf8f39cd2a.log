@@ -1,0 +1,5 @@
+[Main] Starting script manage_dlq via Popen...
+--- Script manage_dlq started ---
+DLQ Manager invoked via ScriptRunner. Args: {'action': 'list', 'queue': 'test_queue_dlq'}
+2026-01-09 15:59:48,978 INFO redis: Redis pool initialized: redis://localhost:6379/0
+--- Script manage_dlq finished ---

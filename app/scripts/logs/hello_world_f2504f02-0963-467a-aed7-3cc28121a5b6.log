@@ -1,0 +1,5 @@
+[Main] Starting script hello_world via Popen...
+--- Script hello_world started ---
+[SCRIPT_LOG] Hello from sandbox, General DaDaGuai!
+[SCRIPT_LOG] My working directory is D:\Desktop\Python\Procurator\data\temp_scripts\f2504f02-0963-467a-aed7-3cc28121a5b6
+--- Script hello_world finished ---

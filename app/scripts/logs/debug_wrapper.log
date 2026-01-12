@@ -1,0 +1,6 @@
+Wrapper started with argv: ['D:\\Desktop\\Python\\Procurator\\app\\scripts\\wrapper.py', 'hello_world', 'f2504f02-0963-467a-aed7-3cc28121a5b6', 'D:\\Desktop\\Python\\Procurator\\data\\temp_scripts\\f2504f02-0963-467a-aed7-3cc28121a5b6', 'D:\\Desktop\\Python\\Procurator\\data\\temp_scripts\\f2504f02-0963-467a-aed7-3cc28121a5b6\\input.json']
+Entering main...
+Parsed args: script=hello_world, input_file=D:\Desktop\Python\Procurator\data\temp_scripts\f2504f02-0963-467a-aed7-3cc28121a5b6\input.json
+Loading script from D:\Desktop\Python\Procurator\app\scripts\hello_world.py
+Running script...
+Script finished successfully

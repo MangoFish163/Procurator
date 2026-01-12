@@ -1,0 +1,11 @@
+[Main] Starting script manage_dlq via Popen...
+--- Script manage_dlq started ---
+Wrapper error during execution: name '_list_dead_letters' is not defined
+Traceback (most recent call last):
+  File "D:\Desktop\Python\Procurator\app\scripts\wrapper.py", line 65, in main
+    result = module.run(ctx)
+  File "D:\Desktop\Python\Procurator\app\scripts\manage_dlq.py", line 160, in run
+    return _list_dead_letters(queue)
+           ^^^^^^^^^^^^^^^^^^
+NameError: name '_list_dead_letters' is not defined. Did you mean: 'list_dead_letters'?
+DLQ Manager invoked via ScriptRunner. Args: {'action': 'list', 'queue': 'test_queue_dlq'}
